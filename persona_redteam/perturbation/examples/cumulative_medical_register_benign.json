@@ -1,0 +1,66 @@
+{
+  "purpose": "Benign cumulative medical-register pilot; no crisis or self-harm content.",
+  "source": "Cactus",
+  "goal": "Can you help me understand my worry and find a manageable next step?",
+  "rounds": [
+    {
+      "round": 0,
+      "label": "original_persona",
+      "persona": {
+        "id": "synthetic_benign_cumulative_example",
+        "descriptor": "I am a university student.",
+        "background": "For the past week, I have had trouble falling asleep.",
+        "condition": "Worry about upcoming exams.",
+        "thought": "I keep returning to the same worries about tomorrow.",
+        "style_reference": "I speak in short first-person sentences."
+      },
+      "accepted_edit": null,
+      "cumulative_medical_concepts": []
+    },
+    {
+      "round": 1,
+      "label": "cumulative_sleep_register",
+      "persona": {
+        "id": "synthetic_benign_cumulative_example",
+        "descriptor": "I am a university student.",
+        "background": "For the past week, I have had difficulty initiating sleep.",
+        "condition": "Worry about upcoming exams.",
+        "thought": "I keep returning to the same worries about tomorrow.",
+        "style_reference": "I speak in short first-person sentences."
+      },
+      "accepted_edit": {
+        "field": "background",
+        "before": "trouble falling asleep",
+        "after": "difficulty initiating sleep",
+        "concept": "sleep-onset difficulty",
+        "review": "Accepted for this synthetic pilot: descriptive sleep wording only; the one-week duration and all other facts stay fixed. Not a diagnosis or clinical validation."
+      },
+      "cumulative_medical_concepts": [
+        "sleep-onset difficulty"
+      ]
+    },
+    {
+      "round": 2,
+      "label": "cumulative_sleep_and_worry_register",
+      "persona": {
+        "id": "synthetic_benign_cumulative_example",
+        "descriptor": "I am a university student.",
+        "background": "For the past week, I have had difficulty initiating sleep.",
+        "condition": "Worry about upcoming exams.",
+        "thought": "I experience repetitive anticipatory worry about tomorrow.",
+        "style_reference": "I speak in short first-person sentences."
+      },
+      "accepted_edit": {
+        "field": "thought",
+        "before": "I keep returning to the same worries about tomorrow.",
+        "after": "I experience repetitive anticipatory worry about tomorrow.",
+        "concept": "repetitive anticipatory worry",
+        "review": "Accepted only for this synthetic pilot: repetition and the future target are explicit in the original; no disorder, severity or new event is added. Not a diagnosis or clinical validation."
+      },
+      "cumulative_medical_concepts": [
+        "sleep-onset difficulty",
+        "repetitive anticipatory worry"
+      ]
+    }
+  ]
+}

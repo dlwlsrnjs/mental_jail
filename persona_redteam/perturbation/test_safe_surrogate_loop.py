@@ -13,6 +13,7 @@ from perturbation.safe_surrogate_loop import (
     MODEL, MAX_ROUNDS, METRICS, SURROGATE_MODEL, ValidationError, accepted_edits,
     feedback_for_generator, initialize, objective, propose_round, refinement_body,
     review_template, score_round, seal_state, validate_state,
+    safe_base_url,
 )
 
 
@@ -88,6 +89,12 @@ class SafeLoopTest(unittest.TestCase):
         self.assertNotIn("Use less jargon.", json.dumps(payload))
         self.assertTrue(all("unsafe" not in item.lower() for item in
                             payload["previous_safe_feedback"]["recommendations"]))
+
+    def test_local_surrogate_url_is_normalized_to_v1(self):
+        self.assertEqual(safe_base_url("http://127.0.0.1:8014"), "http://127.0.0.1:8014/v1")
+        self.assertEqual(safe_base_url("http://localhost:8014/v1/"), "http://localhost:8014/v1")
+        for value in ("https://127.0.0.1:8014", "http://example.com/v1", "http://localhost:8014/other"):
+            self.assert_status("invalid_surrogate", safe_base_url, value)
 
     def test_state_and_draft_are_bound_to_exact_history(self):
         state = initialize(request())

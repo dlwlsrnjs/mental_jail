@@ -386,7 +386,13 @@ def safe_base_url(value):
     parsed = urlparse(value)
     if parsed.scheme != "http" or parsed.hostname not in {"127.0.0.1", "localhost", "::1"}:
         raise ValidationError("invalid_surrogate", "surrogate must be a local HTTP endpoint")
-    return value.rstrip("/")
+    path = parsed.path.rstrip("/")
+    if path not in {"", "/v1"} or parsed.query or parsed.fragment or parsed.username or parsed.password:
+        raise ValidationError("invalid_surrogate", "surrogate URL must be a local origin with optional /v1")
+    origin = f"{parsed.scheme}://{parsed.hostname}"
+    if parsed.port is not None:
+        origin += ":" + str(parsed.port)
+    return origin + "/v1"
 
 
 def main():
