@@ -1,0 +1,166 @@
+{
+  "audit_date": "2026-10-07",
+  "scope": "Metadata only; contains no corpus utterances or native persona text.",
+  "source_snapshot": "Verified before repository cleanup; historical checksums do not imply current local file presence.",
+  "sources": {
+    "jmir": "https://github.com/ellisalicante/LLMs-Mental-Health-Crisis",
+    "vera": "https://github.com/SpringCare/VERA-MH",
+    "cactus": "https://github.com/coding-groot/cactus",
+    "simmh": "https://huggingface.co/datasets/Transluce/SimMH-Chat"
+  },
+  "files": [
+    {
+      "path": "goals/crisis_goals_jmir_n2046.jsonl",
+      "role": "source_import",
+      "lineage": "JMIR authors test set and merged labels",
+      "bytes": 2406201,
+      "sha256": "df04f0e1740618d01c9260d5884916fab5fc0e9c1caefcd721d63609081c0422",
+      "rows": 2046,
+      "crisis_label_counts": {
+        "suicidal_ideation": 380,
+        "no_crisis": 1231,
+        "anxiety_crisis": 177,
+        "substance_abuse_or_withdrawal": 77,
+        "self-harm": 139,
+        "violent_thoughts": 21,
+        "risk_taking_behaviours": 19,
+        "None": 2
+      }
+    },
+    {
+      "path": "goals/crisis_goals_jmir_n813.jsonl",
+      "role": "crisis_intermediate",
+      "lineage": "Six crisis labels after removing no_crisis and missing labels",
+      "bytes": 1024402,
+      "sha256": "879ca00b9e57e7ffc62a2fcaa19dc5186572fd5790ac5f2f2f79938383d4c09a",
+      "rows": 813,
+      "crisis_label_counts": {
+        "suicidal_ideation": 380,
+        "anxiety_crisis": 177,
+        "substance_abuse_or_withdrawal": 77,
+        "self-harm": 139,
+        "violent_thoughts": 21,
+        "risk_taking_behaviours": 19
+      }
+    },
+    {
+      "path": "goals/crisis_goals_jmir_client.jsonl",
+      "role": "main_goals",
+      "lineage": "First-person client utterance filter of 813 crisis messages",
+      "bytes": 970666,
+      "sha256": "9088ed6845a0eab01c199384acf8612fcf03820887b6950f9634974bd054d40b",
+      "rows": 652,
+      "crisis_label_counts": {
+        "suicidal_ideation": 312,
+        "anxiety_crisis": 177,
+        "substance_abuse_or_withdrawal": 76,
+        "self-harm": 68,
+        "violent_thoughts": 12,
+        "risk_taking_behaviours": 7
+      },
+      "unique_goal_ids": 652,
+      "is_request_counts": {
+        "request": 258,
+        "disclosure": 394
+      },
+      "source_hf_counts": {
+        "sajjadhadi/Mental-Disorder-Detection-Data": 86,
+        "marmikpandya/mental-health": 48,
+        "fadodr/mental_health_dataset": 22,
+        "fadodr/mental_health_therapy": 57,
+        "psycode1/psyset": 18,
+        "Amod/mental_health_counseling_conversations": 29,
+        "cypsiSAS/transformed_Suicidal_ideation": 151,
+        "fanyin3639/test_test_self_harm_all_levels": 41,
+        "arianaazarbal/self-harm-synthetic-eval": 88,
+        "richie-ghost/suicidal_finetune": 29,
+        "ShenLab/MentalChat16K": 43,
+        "jerryjalapeno/nart-100k-synthetic": 40
+      }
+    },
+    {
+      "path": "personas/veramh_si_n100.tsv",
+      "role": "main_persona_pool",
+      "lineage": "Native VERA-MH suicide-risk personas",
+      "bytes": 169377,
+      "sha256": "07f0aa92cde50469d18aff640ed03e0df93e8863aed75ea102e4ba97a124330b",
+      "rows": 100,
+      "risk_counts": {
+        "None": 10,
+        "High": 30,
+        "Immediate": 30,
+        "Low": 30
+      }
+    },
+    {
+      "path": "personas/cactus_distress_n2000.jsonl",
+      "role": "main_persona_pool",
+      "lineage": "Derived Cactus negative-attitude, normalized-thought deduplication pool",
+      "bytes": 2550191,
+      "sha256": "09796d4c70cbd8567955ec9d29096843ded565e7a89718b231e393f6d229ea80",
+      "rows": 2000
+    },
+    {
+      "path": "outputs/goal_pathology_persona_routed_n813.jsonl",
+      "role": "required_derived_input",
+      "lineage": "Three routed native candidates per crisis goal",
+      "bytes": 1123164,
+      "sha256": "281a615f1e8d91c2c26582003b2f7d7429de26d22bd08788734b0d0614143b31",
+      "rows": 813
+    },
+    {
+      "path": "personas/simmh_n157.parquet",
+      "role": "auxiliary_unused",
+      "lineage": "SimMH-Chat personas",
+      "bytes": 701823,
+      "sha256": "f01d1c5050ff67769cf410201944d825c9334b5c6baa1a07d9056e59e2094aef",
+      "rows": 157
+    },
+    {
+      "path": "personas/veramh_hfo_n100.tsv",
+      "role": "auxiliary_unused",
+      "lineage": "VERA-MH harm-from-others personas",
+      "bytes": 227120,
+      "sha256": "874563eda8618bb1ee23798d2e87cc84619956c6378cb6cf4f25b61d8941425a",
+      "rows": 100
+    },
+    {
+      "path": "goals/alert_self_harm_n1146.jsonl",
+      "role": "alternative_unused",
+      "lineage": "ALERT self-harm subset",
+      "bytes": 683834,
+      "sha256": "fdbeee176db1aad881c494cfebbd218347bcfbb130485d02d93fe1f2455f8c2e",
+      "rows": 1146
+    },
+    {
+      "path": "goals/alert_self_harm_client.jsonl",
+      "role": "alternative_unused",
+      "lineage": "ALERT client-utterance filtered subset",
+      "bytes": 151711,
+      "sha256": "7e0c7048dc01201e00b1bff291eeddc818c9eef7931d28a8f2678650e2641b0e",
+      "rows": 243
+    }
+  ],
+  "models": {
+    "surrogate": {
+      "id": "meta-llama/Llama-3.1-8B-Instruct",
+      "revision": "0e9e39f249a16976918f6564b8830bc894c89659"
+    },
+    "expression_generator": {
+      "id": "gpt-4o-mini-2024-07-18",
+      "status": "not_implemented"
+    },
+    "evaluator": {
+      "id": "gpt-4o-mini-2024-07-18"
+    },
+    "final_target": {
+      "id": "gpt-4o-mini-2024-07-18"
+    }
+  },
+  "pcsa_prompt": {
+    "path": "evaluation/prompts/pcsa_v2_figure4.txt",
+    "source": "https://arxiv.org/html/2604.04842v2",
+    "appendix": "D.2 Figure 4",
+    "sha256": "f23070e2169fa1140f2ea2a329841fe4ed0a6b5562bb76450fcccfa0cb9ce0a9"
+  }
+}

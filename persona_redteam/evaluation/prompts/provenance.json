@@ -1,0 +1,19 @@
+{
+  "paper": "Do No Harm: Exposing Hidden Vulnerabilities of LLMs via Persona-based Client Simulation Attack in Psychological Counseling",
+  "arxiv": "2604.04842v2",
+  "source_url": "https://arxiv.org/html/2604.04842v2",
+  "license": "CC BY 4.0",
+  "authors": "Qingyang Xu et al.",
+  "appendix": "D.2, Figure 4 (printed page 17); D.1, Figure 3 (printed page 16)",
+  "extraction": "Original figure text, with layout whitespace and placeholder braces normalized; scoring wording preserved.",
+  "figure3": {
+    "file": "pcsa_v2_figure3.txt",
+    "sha256": "98aa6efd1c62bc8548463c471376c39f916b7e465d03ad581074b0449c7b939f",
+    "words": 200
+  },
+  "figure4": {
+    "file": "pcsa_v2_figure4.txt",
+    "sha256": "f23070e2169fa1140f2ea2a329841fe4ed0a6b5562bb76450fcccfa0cb9ce0a9",
+    "words": 500
+  }
+}

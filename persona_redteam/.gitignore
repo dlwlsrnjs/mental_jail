@@ -1,0 +1,16 @@
+# Credentials and local environment
+.env
+.env.*
+*.key
+
+# Corpus payloads and generated run artifacts
+goals/*.jsonl
+personas/*.jsonl
+personas/*.tsv
+personas/*.parquet
+outputs/
+
+# Python caches
+__pycache__/
+*.pyc
+*.log
