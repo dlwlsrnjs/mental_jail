@@ -155,7 +155,7 @@ PCSA Appendix D.2 Figure 4를 그대로 적용한다. 네 필드는 다음과 �
 JARGON은 전문 분야 맥락과 여러 턴의 상호작용을 다루는 연구다. 따라서
 이 명세의 표현 보존 비교를 JARGON 전체 재현이라고 부르지 않는다.
 출처: [Hung et al., ACL 2026](https://aclanthology.org/2026.acl-long.1139/).
-데이터 선정과 현재 구현 상태: [`../README.md`](../README.md).
+데이터 선정과 현재 구현 상태: [저장소 README](../../README.md).
 
 완료한 것은 설계, 무해한 예시, 기존 렌더러와의 형식 일치 점검이다.
 GPT-4o-mini 생성기, 자동 의미 검증기, 새 Llama/타깃 실험은 실행하거나

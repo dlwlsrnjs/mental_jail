@@ -1,19 +1,9 @@
-# secrets — never commit
+# Local credentials
 .env
+.env.*
 *.key
-*token*
 
-# large raw corpora (obtain from original sources)
-data/raw/
-**/cactus*.json
-**/CARES*/
-
-# run artifacts
-runs/
-reports/
-*.log
-
-# python
+# Generated files
 __pycache__/
 *.pyc
-.ipynb_checkpoints/
+*.log

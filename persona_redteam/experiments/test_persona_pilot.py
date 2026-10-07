@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -13,6 +14,7 @@ from experiments.persona_pilot import (Engine, EventStore, SURROGATE_MODEL, TARG
     JUDGE_MODEL, GOAL_MARKER, sample_cases, surrogate_case, target_case, summarize)
 from evaluation.pcsa_judge import FIELDS, judge_messages, validate_judgment
 from perturbation.perturb_persona import medical_variant
+from tests.synthetic_inputs import write_inputs
 
 
 def judgment(response='Support is available.', toxic=0):
@@ -158,7 +160,9 @@ class PilotTest(unittest.TestCase):
         self.assertIsNone(summary['conditions']['medical_persona']['unsafe_rate'])
 
     def test_sample_has_six_labels_unique_goals_and_paired_request_strata(self):
-        rows = sample_cases(2,42)
+        fixture_root = write_inputs(Path(self.temp.name) / 'inputs')
+        with patch('experiments.persona_pilot.ROOT', fixture_root):
+            rows = sample_cases(2,42)
         self.assertEqual(len(rows),12)
         self.assertEqual(len({r['goal']['goal'] for r in rows}),12)
         for label in {r['goal']['crisis_label'] for r in rows}:

@@ -10,6 +10,9 @@ import tempfile
 import threading
 import unittest
 
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from tests.synthetic_inputs import write_inputs
 import compliance_judge as judge
 import select_by_surrogate as selector
 
@@ -25,10 +28,11 @@ class SelectionTests(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
         self.path = Path(self.temporary.name) / "trials.jsonl"
+        self.data = write_inputs(Path(self.temporary.name) / "inputs")
         self.case = selector.load_inputs(
-            selector.ROOT / "goals/crisis_goals_jmir_client.jsonl",
-            selector.ROOT / "outputs/goal_pathology_persona_routed_n813.jsonl",
-            selector.ROOT / "personas", limit=1)[0]
+            self.data / "goals/crisis_goals_jmir_client.jsonl",
+            self.data / "outputs/goal_pathology_persona_routed_n813.jsonl",
+            self.data / "personas", limit=1)[0]
 
     def log(self, resume=False):
         log = selector.TrialLog(self.path, "fixture-fingerprint", resume)
@@ -127,20 +131,20 @@ class SelectionTests(unittest.TestCase):
             selector.TrialLog(self.path, "fixture-fingerprint", resume=True)
 
     def test_cleaned_goal_join_and_risk_validation(self):
-        full = selector.load_inputs(selector.ROOT / "goals/crisis_goals_jmir_client.jsonl",
-            selector.ROOT / "outputs/goal_pathology_persona_routed_n813.jsonl", selector.ROOT / "personas", scope="all")
-        self.assertEqual(len(full), 652)
+        full = selector.load_inputs(self.data / "goals/crisis_goals_jmir_client.jsonl",
+            self.data / "outputs/goal_pathology_persona_routed_n813.jsonl", self.data / "personas", scope="all")
+        self.assertEqual(len(full), 12)
         path = Path(self.temporary.name) / "routed.jsonl"
-        record = selector.read_jsonl(selector.ROOT / "outputs/goal_pathology_persona_routed_n813.jsonl")[0]
+        record = selector.read_jsonl(self.data / "outputs/goal_pathology_persona_routed_n813.jsonl")[0]
         record["goal"] += " changed"
         path.write_text(json.dumps(record) + "\n")
         with self.assertRaisesRegex(ValueError, "text/label mismatch"):
-            selector.load_inputs(selector.ROOT / "goals/crisis_goals_jmir_client.jsonl", path, selector.ROOT / "personas", limit=1)
+            selector.load_inputs(self.data / "goals/crisis_goals_jmir_client.jsonl", path, self.data / "personas", limit=1)
         record["goal"] = self.case["goal"]["goal"]
-        record["persona_candidates"][0]["id"] = "Noah"  # native Low risk, excluded for suicide route
+        record["persona_candidates"][0]["id"] = "fixture-low"
         path.write_text(json.dumps(record) + "\n")
         with self.assertRaisesRegex(ValueError, "risk filter"):
-            selector.load_inputs(selector.ROOT / "goals/crisis_goals_jmir_client.jsonl", path, selector.ROOT / "personas", limit=1)
+            selector.load_inputs(self.data / "goals/crisis_goals_jmir_client.jsonl", path, self.data / "personas", limit=1)
 
     def test_goal_text_preserved_and_failure_frame_not_sent_to_surrogate(self):
         case = copy.deepcopy(self.case)
@@ -153,15 +157,53 @@ class SelectionTests(unittest.TestCase):
     def test_dry_run_does_not_create_outputs_or_need_credentials(self):
         out = Path(self.temporary.name) / "selected.jsonl"
         result = subprocess.run([sys.executable, str(selector.ROOT / "matching/select_by_surrogate.py"),
+            "--goals", str(self.data / "goals/crisis_goals_jmir_client.jsonl"),
+            "--candidates", str(self.data / "outputs/goal_pathology_persona_routed_n813.jsonl"),
+            "--persona-dir", str(self.data / "personas"),
             "--scope", "all", "--dry-run", "--out", str(out)], capture_output=True, text=True, check=True)
         plan = json.loads(result.stdout)
-        self.assertEqual(plan["goals"], 652)
-        self.assertEqual(plan["surrogate_calls"], 2608)
+        self.assertEqual(plan["goals"], 12)
+        self.assertEqual(plan["surrogate_calls"], 48)
         self.assertEqual(plan["target_calls"], 0)
         self.assertFalse(out.exists())
 
 
 class JudgeTests(unittest.TestCase):
+    def test_standalone_judge_cli_uses_local_credentials_and_validates_response(self):
+        requests = []
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self, *args):
+                pass
+            def send(self, value):
+                body = json.dumps(value).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            def do_GET(self):
+                self.send({"data": [{"id": "fixture-judge"}]})
+            def do_POST(self):
+                body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+                requests.append((self.headers.get("Authorization"), body))
+                self.send({"model": "fixture-judge", "usage": {},
+                           "choices": [{"message": {"content": json.dumps(evaluation())}}]})
+        server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        self.addCleanup(server.server_close)
+        self.addCleanup(server.shutdown)
+        payload = {"task": "score_compliance", "goal": "I would like support.",
+                   "client_turn": "I feel worried.", "response": "Support is available."}
+        result = subprocess.run([sys.executable, str(ROOT / "matching/compliance_judge.py"),
+            "--model", "fixture-judge", "--local-base-url", f"http://127.0.0.1:{server.server_port}/v1"],
+            input=json.dumps(payload), text=True, capture_output=True, timeout=15,
+            env=dict(os.environ, OPENAI_API_KEY="fixture-external-key-must-not-be-sent"))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)["score"], 0)
+        self.assertEqual(len(requests), 1)
+        self.assertEqual(requests[0][0], "Bearer local")
+        self.assertEqual(requests[0][1]["response_format"], {"type": "json_object"})
+
     def test_safe_empathy_does_not_require_refusal(self):
         self.assertEqual(judge.validate_evaluation(evaluation())["score"], 0)
 
@@ -182,6 +224,7 @@ class CliTests(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
         root = Path(self.temporary.name)
+        self.data = write_inputs(root / "inputs")
         self.out = root / "selected.jsonl"
         self.judge_path = root / "judge_fixture.py"
         self.judge_path.write_text("import json,sys\njson.load(sys.stdin)\nprint(" + repr(json.dumps(evaluation())) + ")\n")
@@ -207,6 +250,9 @@ class CliTests(unittest.TestCase):
         self.addCleanup(self.server.server_close)
         self.addCleanup(self.server.shutdown)
         self.command = [sys.executable, str(selector.ROOT / "matching/select_by_surrogate.py"),
+            "--goals", str(self.data / "goals/crisis_goals_jmir_client.jsonl"),
+            "--candidates", str(self.data / "outputs/goal_pathology_persona_routed_n813.jsonl"),
+            "--persona-dir", str(self.data / "personas"),
             "--limit", "1", "--out", str(self.out), "--surrogate-model", "fixture-surrogate",
             "--surrogate-base-url", f"http://127.0.0.1:{self.server.server_port}/v1",
             "--surrogate-key-env", "FIXTURE_KEY", "--judge-command",

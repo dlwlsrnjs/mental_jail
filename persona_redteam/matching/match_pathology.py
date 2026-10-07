@@ -20,16 +20,14 @@ Output:
   outputs/goal_persona_routed_n813.jsonl
 
 Usage:
-    set -a; . /home/ubuntu/342/jinkwon/pcsa/.env; set +a
-    PYTHONPATH=/home/ubuntu/342/jinkwon/pcsa/phase2_strategy_optimization \
-      python3 match_pathology.py --goals ../outputs/goal_pathology_n813.jsonl --topk 3
+    python matching/match_pathology.py --goals outputs/goal_pathology_n813.jsonl --topk 3
 """
 from __future__ import annotations
 import argparse, csv, json, math
 from pathlib import Path
-import embeddings  # from phase2_strategy_optimization on PYTHONPATH
+import embeddings
 
-ROOT = Path("/home/ubuntu/342/jinkwon/pcsa/persona_redteam")
+ROOT = Path(__file__).resolve().parents[1]
 cos = lambda a, b: sum(x*y for x, y in zip(a, b)) / (math.sqrt(sum(x*x for x in a))*math.sqrt(sum(x*x for x in b))+1e-9)
 ELIG = {"suicidal_ideation": {"High", "Immediate"}, "self-harm": {"Low", "High", "Immediate"}}
 route = lambda lab: "VERA-SI" if lab in ("suicidal_ideation", "self-harm") else "Cactus"

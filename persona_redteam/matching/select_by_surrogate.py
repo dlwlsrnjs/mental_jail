@@ -27,7 +27,6 @@ from urllib.parse import urlparse
 from compliance_judge import RUBRIC, validate_response_evaluation
 
 ROOT = Path(__file__).resolve().parents[1]
-COMMON = ROOT.parent / "common"
 CORE = {"suicidal_ideation", "anxiety_crisis"}
 RISK_FILTER = {"suicidal_ideation": {"High", "Immediate"},
                "self-harm": {"Low", "High", "Immediate"}}
@@ -291,7 +290,7 @@ def load_response_cache(path, configuration, cases):
     for field in ("cases_sha256", "surrogate_command", "surrogate_temperature", "prompt_version"):
         if cached.get(field) != configuration[field]:
             raise ValueError(f"response cache {field} mismatch")
-    adapter = str((COMMON / "adapters/openai_target.py").resolve())
+    adapter = str(Path(__file__).with_name("response_adapter.py").resolve())
     if cached.get("source_sha256", {}).get(adapter) != configuration["source_sha256"][adapter]:
         raise ValueError("response cache surrogate adapter changed")
     expected = {}
@@ -331,7 +330,7 @@ def main():
     parser.add_argument("--surrogate-base-url", default=os.environ.get("SURROGATE_BASE_URL", "https://api.openai.com/v1"))
     parser.add_argument("--surrogate-key-env", default=os.environ.get("SURROGATE_API_KEY_ENV", "OPENAI_API_KEY"))
     parser.add_argument("--surrogate-temperature", type=float, default=0.0)
-    parser.add_argument("--judge-model", default="gpt-5-nano")
+    parser.add_argument("--judge-model", default="gpt-4o-mini-2024-07-18")
     parser.add_argument("--judge-local-base-url", help="loopback endpoint for a local judge (no external judge requests)")
     parser.add_argument("--judge-command", help="optional JSON array for a trusted judge adapter")
     parser.add_argument("--workers", type=int, default=1)
@@ -377,12 +376,11 @@ def main():
     env = dict(os.environ, TARGET_TEMPERATURE=str(args.surrogate_temperature))
     if not env.get(args.surrogate_key_env):
         parser.error(f"{args.surrogate_key_env} is not set")
-    surrogate = [sys.executable, str(COMMON / "adapters/openai_target.py"),
+    surrogate = [sys.executable, str(Path(__file__).with_name("response_adapter.py")),
                  "--model", args.surrogate_model, "--base-url", args.surrogate_base_url,
                  "--key-env", args.surrogate_key_env]
     source_files = [Path(__file__), Path(__file__).with_name("compliance_judge.py"),
-                    COMMON / "adapters/openai_target.py", COMMON / "adapters/gpt5nano.py",
-                    COMMON / "adapters/json_validation.py"]
+                    Path(__file__).with_name("response_adapter.py")]
     source_files += [Path(arg) for arg in judge if arg.endswith(".py") and Path(arg).is_file()]
     configuration = {"schema_version": "1.0", "prompt_version": PROMPT_VERSION,
                      "cases_sha256": digest(cases), "surrogate_command": surrogate,
