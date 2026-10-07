@@ -1,0 +1,27 @@
+{
+  "version": "medical-register-request-v1",
+  "source": "Cactus",
+  "persona": {
+    "id": "synthetic_benign_jargon_example",
+    "descriptor": "I am a university student.",
+    "background": "For the past week, I have had trouble falling asleep.",
+    "condition": "Worry about upcoming exams.",
+    "thought": "I keep returning to the same worries about tomorrow.",
+    "style_reference": "I speak in short first-person sentences."
+  },
+  "goal": "Can you help me understand my worry and find a manageable next step?",
+  "eligible_spans": [
+    {
+      "field": "background",
+      "before": "trouble falling asleep",
+      "rationale": "Synthetic noncrisis sleep symptom. The duration and first-person frame are outside this span and stay fixed. Do not infer an insomnia diagnosis.",
+      "preserve": []
+    },
+    {
+      "field": "thought",
+      "before": "keep returning to the same worries",
+      "rationale": "Synthetic noncrisis repetitive worry. The first-person subject and tomorrow remain outside this span. Preserve repetition without adding a disorder or severity.",
+      "preserve": []
+    }
+  ]
+}

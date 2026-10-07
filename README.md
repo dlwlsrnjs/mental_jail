@@ -5,7 +5,7 @@
 이 문서는 사용할 데이터, 선정·가공 근거, 현재 구현 상태, 결과의 한계와
 후속 작업을 정리한다. 기준일은 **2026-10-07**이다.
 
-이 저장소의 기존 코드·데이터셋·결과 문서를 현재 코드로 교체했다.
+GitHub 저장소의 기존 코드·데이터셋·결과 문서를 현재 코드로 교체했다.
 코드는 `persona_redteam/`에 있고, 이 루트 README가 현재 설명의 기준이다.
 배포 구성은 코드, 현재 설계 문서, PCSA 평가 원문과 데이터 메타데이터다.
 데이터 원문·페르소나 원문·가중치·실험 응답 로그는 Git 추적에서 제외한다.
@@ -15,14 +15,15 @@
 
 | 역할 | 모델 | 현재 상태 |
 |---|---|---|
-| 의학 표현 생성기 | `gpt-4o-mini-2024-07-18` | 역할 지정과 변환 명세 완료; 생성 API 연동은 미구현 |
+| 의학 표현 생성기 | `gpt-4o-mini-2024-07-18` | 허용 span의 변경 제안 API, 검토 기록과 입력 고정 구현; 무해한 예시 1회 호출 확인 |
 | 서로게이트 응답 모델 | `meta-llama/Llama-3.1-8B-Instruct` | 공식 가중치로 기존 파일럿 실행 완료 |
 | 응답 평가기 | `gpt-4o-mini-2024-07-18` | PCSA 네 지표 평가 구현 및 소규모 기본 검증 완료 |
 | 최종 비교 대상 | `gpt-4o-mini-2024-07-18` | 기존 고정 치환 파일럿의 세 조건 비교 완료 |
 
 같은 GPT-4o-mini를 쓰더라도 생성, 상담 응답, 평가 요청은 별도 호출이다.
 현재 응답·평가 기록에는 `target_response`와 `pcsa_evaluator`처럼 역할을
-구분해 저장한다. 생성기 역할이 지정됐다는 사실은 생성기가 구현됐다는 뜻이 아니다.
+구분해 저장한다. 새 생성기는 기존 고정 치환 파일럿과 별도 명령이며,
+기존 결과에 생성기를 소급 적용하지 않는다.
 
 Llama 모델의 고정 revision은
 `0e9e39f249a16976918f6564b8830bc894c89659`이다. 선택 이유는 동일한 조건을
@@ -185,16 +186,31 @@ cosine 순위는 후보를 찾는 근거다. 높은 순위를 얻었다고 PCSA 
 ### 현재 구현
 
 `perturbation/perturb_persona.py`는 **38개 고정 표현**을 원문 span에서 치환한다.
-GPT-4o-mini가 문맥을 읽고 다시 쓰는 방식은 아직 아니다.
+이 함수는 GPT-4o-mini가 문맥을 읽고 다시 쓰는 방식이 아니다.
 기존 함수는 렌더링된 페르소나 문맥 전체를 처리해 필드 제목도 바뀔 수 있으며,
 문맥에 따른 의미 보존과 문법을 자동으로 검증하지 않는다.
 
-### 구체화한 후속 설계
+### 새로 구현한 span 생성기
+
+`perturbation/medical_register.py`는 사전에 지정한 비위기적 증상 구간을
+GPT-4o-mini에 보내 변경 제안 JSON을 받는다. 한 요청은 원본에서 고정된
+후보 하나를 만들며, 최대 세 구간만 지정할 수 있다. 생성기에는 해당 구간과
+그 필드의 문맥만 보내고 상담 목표와 나머지 필드는 보내지 않는다.
+반환 형식은 OpenAI의
+[Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)를 사용한다.
 
 구조화한 페르소나에서 허용된 비위기적 증상 서술만 변경하고 원문·변형문·필드·
 문자 위치를 기록한다. 나이, 진단, 위험 수준, 기간, 부정 표현, 상담 목표는
 보존한다. 신규 진단이나 중증도·만성성 추가, 의미가 확인되지 않는 치환은 제외한다.
-생성기 자가 판정만으로 의미 보존을 인정하지 않는다.
+생성기 자가 판정만으로 의미 보존을 인정하지 않는다. 구조 검증을 통과한
+결과도 `meaning_unverified` 상태다. 검토 기록에서 각 수정의 **의미 보존**과
+**의학 표현 여부**를 따로 판정한다. 둘 다 통과한 수정만 원본에 적용하고,
+제외된 수정은 원문으로 유지한다. 모든 수정이 제외되면 의학 표현 조건을 만들지 않는다.
+
+자동 검사는 허용 필드·정확히 한 곳에 있는 원문 구간·겹침 여부·지정한 보호
+표현의 보존·출력 형식을 확인한다. 어떤 구간이 비위기적인지, 새 진단이나
+정도의 변화가 없는지, 임상적으로 같은 의미인지는 자동으로 판정하지 않는다.
+`eligible_spans`를 준비하는 단계와 수정 제안을 검토하는 단계에서 확인해야 한다.
 
 수면·걱정에 관한 무해한 예시는 다음과 같다.
 
@@ -220,6 +236,56 @@ Can you help me understand my worry and find a manageable next step?
 세 조건의 실제 예시는
 [`perturbation/examples/medical_register_benign.json`](persona_redteam/perturbation/examples/medical_register_benign.json)에 있다.
 예시는 가상 내담자이며 실제 데이터셋 원문이 아니다.
+
+### 이번 실제 생성 확인
+
+2026-10-07에 같은 가상 내담자로 생성기 API를 **1회** 호출했다. 두 구간을
+제안받아 수면 표현 한 구간만 적용했다.
+
+| 구간 | GPT-4o-mini 제안 | 검토 결과 |
+|---|---|---|
+| `trouble falling asleep` | `difficulty initiating sleep` | 수면 시작의 어려움이라는 서술만 변경; 적용 |
+| `keep returning to the same worries` | `find myself revisiting the same concerns` | 일반적인 바꿔 쓰기이며 걱정의 의미가 넓어질 수 있어 제외 |
+
+검토는 Codex가 가상 문장의 수정 전후를 비교한 기록이며 독립적인 임상 검증이
+아니다. 기간, 1인칭, 내일이라는 대상, 상담 목표와 나머지 필드를 그대로 둔
+세 조건 입력을 고정했다. 생성 토큰은 입력 438개·출력 76개, 총 514개다.
+Llama 응답·최종 타깃 응답·PCSA 평가를 이번 확인에서 새로 생성하지 않았다.
+
+공개 가능한 무해한 실행 예시:
+[`perturbation/examples/medical_register_generated_benign.json`](persona_redteam/perturbation/examples/medical_register_generated_benign.json).
+실제 실행의 원본 출력·검토·고정 입력은 로컬
+`outputs/jargon_benign_20261007/`에 보관하며 원시 실행 기록은 업로드하지 않는다.
+
+### 생성과 입력 고정 방법
+
+아래 명령은 저장소의 `persona_redteam` 폴더에서 실행한다. 첫 명령만 외부
+OpenAI 호출을 한다. 예시 요청은 실제 Cactus 레코드가 아닌 가상 입력이다.
+
+```bash
+python perturbation/medical_register.py propose \
+  --request perturbation/examples/medical_register_request.json \
+  --output outputs/jargon_demo/draft.json
+python perturbation/medical_register.py review-template \
+  --draft outputs/jargon_demo/draft.json \
+  --output outputs/jargon_demo/review.json
+# review.json에 검토자, 각 수정의 decision / register_decision과 notes를 기록한다.
+python perturbation/medical_register.py freeze \
+  --draft outputs/jargon_demo/draft.json \
+  --review outputs/jargon_demo/review.json \
+  --output outputs/jargon_demo/frozen_inputs.json
+```
+
+두 판정은 `accepted` 또는 `rejected`로 기록한다. `pending`이 남아 있으면
+입력을 고정하지 않는다. 검토 파일은 원본 요청·제안·개별 수정의 SHA256에
+연결된다. 다른 제안에 이전 검토를 재사용할 수 없다. 같은 출력 파일로
+생성을 다시 실행하면 외부 호출 전에 중단한다. 연결 실패로 실행 여부를
+모르는 경우 자동으로 다시 호출하지 않는다.
+
+`freeze` 결과의 `inputs`에는 세 조건의 동일한 system/user 형식과 입력
+SHA256이 있다. 기존 `experiments/persona_pilot.py`는 여전히 고정 치환을 사용하며
+이 새 입력 파일을 읽도록 연결되지 않았다. 새 생성기의 결과라고 표시하려면
+고정 입력을 읽는 비교 실행 경로를 추가해야 한다.
 
 후속 명세는 원래 의미를 보존한 입력의 고정 비교다. 거부를 우회하거나
 자해 안내를 더 잘 끌어내도록 응답 피드백으로 표현을 강화하는 절차는 포함하지 않는다.
@@ -271,8 +337,8 @@ Llama 응답과 최종 비교 응답은 구분해 기록한다. 최종 비교를
 | Llama 응답 | 고유 응답 49개; 기존 평가에서 네 항목 모두 0 |
 | 최종 GPT-4o-mini 응답 | 세 조건 × 12개 = 36개; 각 조건·항목 0/12 |
 | 현재 GPT-4o-mini 평가기 기본 검증 | 합성 예시 6/6 통과; 임상 타당성 검증은 아님 |
-| 오프라인 테스트 | 새 배포 구성에서 파일럿 11개 + 선택기·연결 17개 = 28개; 원본 데이터 불필요 |
-| GPT-4o-mini 표현 생성기 | 미구현 |
+| 오프라인 테스트 | 파일럿 11개 + 선택기·연결 17개 + span 생성기 18개 = 46개; 원본 데이터 불필요 |
+| GPT-4o-mini 표현 생성기 | API·보호 span 검증·수정별 검토·세 입력 고정 구현; 가상 예시 1회 / 수정 1개 적용 |
 | 전체 489/652개 최종 페르소나 선정·비교 | 미완료 |
 
 **완료한 12개 입력의 평가기는 GPT-4o였다.** 이후 기본 평가기를
@@ -293,6 +359,8 @@ GPT-4o-mini가 생성한 의학 표현의 효과를 검증한 결과가 아니�
 | `matching/response_adapter.py` | 상담 응답·이전 평가기를 위한 독립 API 연결; 로컬에 외부 키를 보내지 않음 |
 | `tests/synthetic_inputs.py` | 임시 입력을 만드는 무해한 테스트 fixture; 연구 데이터가 아님 |
 | `perturbation/perturb_persona.py` | 기존 고정 치환과 원문 span 기록 |
+| `perturbation/medical_register.py` | 새 GPT-4o-mini 변경 제안, 보호 span 검증, 의미·표현 검토 기록과 세 입력 고정 |
+| `perturbation/examples/medical_register_request.json` | 비위기적 편집 구간을 지정한 가상 요청; 실제 데이터셋 표본이 아님 |
 | `experiments/persona_pilot.py` | 기존 세 조건 파일럿, 응답·평가 기록, 입력 고정과 재개 검증 |
 | `experiments/local_surrogate_server.py` | 고정 Llama 가중치를 로컬 루프백에서 제공 |
 | `evaluation/pcsa_judge.py` | 현재 GPT-4o-mini / PCSA 네 지표 평가 및 근거 검증 |
@@ -321,9 +389,10 @@ API 키는 환경변수 `OPENAI_API_KEY` 또는 부모 폴더의 로컬 `.env`�
 cd persona_redteam
 python -m unittest discover -s experiments -p 'test_*.py' -v
 python -m unittest discover -s matching -p 'test_*.py' -v
+python -m unittest discover -s perturbation -p 'test_*.py' -v
 ```
 
-새 배포 구성에서 파일럿 테스트 11개와 선택기·연결 테스트 17개, **총 28개**를
+파일럿 테스트 11개, 선택기·연결 테스트 17개, 생성기 테스트 18개, **총 46개**를
 원본 데이터 없이 검증한다. 테스트용 범주·위험 필드는 소프트웨어 분기를
 점검하기 위한 값이며 임상 라벨이나 실제 연구 샘플이 아니다.
 
@@ -363,11 +432,12 @@ Cactus 가공과 원본 데이터 병합은 재구축 계획이며, 전체가 �
 | 우선순위 | 작업 | 완료 기준 |
 |---|---|---|
 | 1 | 데이터 로딩·필터링의 재현성 정리 | 하드코딩 경로 제거, 원본 revision 기록, 입력 ID·라벨 검증, 필터 오류·제외 사유 분리 |
-| 완료 | 데이터 없이 실행 가능한 기본 테스트 | 무해한 임시 입력과 모의 서버로 총 28개 테스트; 실제 코퍼스 검증은 별도 |
+| 완료 | 데이터 없이 실행 가능한 기본 테스트 | 무해한 임시 입력과 모의 API로 총 46개 테스트; 실제 코퍼스 검증은 별도 |
 | 3 | 현재 후보 연결과 라벨의 표본 검토 | 자동 라벨·내담자 필터·위험 제한·매칭을 사람이 점검하고 수정 이력 기록 |
-| 4 | 의미 보존 표현 생성기 구현 | 보호 필드와 편집 구간 검증, 구조화된 변경 제안, 의미 검토를 통과한 후보만 고정 |
+| 완료 | span 표현 생성과 입력 고정 구현 | 보호 필드·편집 구간 검증, 구조화된 제안, 의미·표현 검토를 통과한 수정만 적용; 무해한 예시 확인 |
+| 4 | 실제 후보의 편집 구간·표현 타당성 검토 | 비위기적 증상 span 선정과 검토 근거 기록; 구조 검사와 임상 의미 검증을 구분 |
 | 5 | 현재 평가기 타당성 점검 확대 | 안전한 공감·거부·전문가 경계 등 경계 사례를 독립 검토하고 네 항목별 오류 보고 |
-| 6 | 고정 조건의 소규모 비교 | 같은 페르소나·목표·호출 예산으로 세 조건 실행, 네 지표와 입력별 변화 보고 |
+| 6 | 고정 입력을 읽는 소규모 비교 경로 연결 | 새 frozen 입력으로 Llama 세 조건 비교, GPT-4o-mini의 PCSA 네 지표 평가; 기존 고정 치환 결과와 구분 |
 | 7 | 범위를 넓힌 사전 고정 비교 | 충분한 점검 후 489개와 나머지 163개를 층화해 보고; 소규모 결과와 구분 |
 
 후속 작업에서는 데이터 선정 기준과 표현 후보를 응답 결과에 맞춰 바꾸지 않는다.
