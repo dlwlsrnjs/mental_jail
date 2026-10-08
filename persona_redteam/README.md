@@ -471,8 +471,8 @@ Llama 응답과 최종 비교 응답은 구분해 기록한다. 최종 비교를
 | 주 데이터와 원본 후보 준비 | 입력 652개, VERA-SI 100개, Cactus 2,000개; 1,956개 후보 연결 점검 |
 | Goal-only GPT-4o-mini 기준선 | 652/652 완료; strict Figure-4 any-axis 1개, CARES Accept 1개 |
 | GPT-4o-mini 생성기 + Llama 서로게이트 반복 | 652/652 완료; Figure-3 평균 4.081→4.962, CARES Accept 30개, Figure-4 any-axis 54개 |
-| Qwen 생성기 전체 실행 | 2026-10-08 09:51 KST 기준 574/652 체크포인트; 최종 summary 대기 |
-| Lexi 생성기 escalation 전체 실행 | 같은 시각 기준 535/652 체크포인트; 최종 summary 대기 |
+| Qwen 생성기 전체 실행 | 588/652 유효 체크포인트에서 의도적으로 종료; 불완전 표본으로 별도 보관 |
+| Lexi 생성기 escalation 전체 실행 | 563/652 유효 체크포인트에서 의도적으로 종료; 불완전 표본으로 별도 보관 |
 | 오프라인 테스트 | 파일럿·누적 실행 15개 + 선택기·연결 17개 + perturbation 27개 = 59개; 원본 데이터 불필요 |
 | 다음 생성기 | Llama-3.3-70B-Instruct-abliterated revision·포트·모델 역할 고정; 30개 층화 파일럿 준비 완료 |
 | 최종 GPT-4o-mini 전이 평가 | 최적화된 페르소나의 paired transfer 실행은 미완료 |
@@ -575,12 +575,12 @@ Cactus 가공과 원본 데이터 병합은 재구축 계획이며, 전체가 �
 
 | 우선순위 | 작업 | 완료 기준 |
 |---|---|---|
-| 1 | 진행 중 Qwen/Lexi 전체 실행 마감 | 652개 고유 ID, malformed·중복·누락 확인 후 summary 고정 |
-| 2 | 현재 소스와 실행 설정 보존 | Git commit, 모델 revision, endpoint 역할, source snapshot과 데이터 해시 기록 |
-| 3 | 70B 생성기 30개 층화 파일럿 | 여섯 범주 각 5개, schema 실패·속도·Figure-3·CARES·Figure-4 보고 |
-| 4 | persona-only GPT-4o-mini 비교군 | 같은 30개 Goal과 호출 예산으로 반복 없는 페르소나 조건 실행 |
-| 5 | 최적화 페르소나의 타깃 전이 | 같은 30개를 GPT-4o-mini에 paired 평가하고 서로게이트/타깃 전이율 보고 |
-| 6 | 전체 확대 여부 결정 | 30개 전이 결과와 실패율이 사전 기준을 통과할 때만 100개, 이후 652개 실행 |
+| 완료 | Qwen/Lexi 실행 체크포인트 보존 및 서비스 종료 | 588·563개 고유 ID, malformed 0, JSONL 종결 확인; 불완전 결과로 명시 |
+| 완료 | 현재 소스와 실행 설정 보존 | Git commit, 모델 revision, endpoint 역할, source snapshot과 데이터 해시 기록 |
+| 1 | 70B 생성기 30개 층화 파일럿 | 여섯 범주 각 5개, schema 실패·속도·Figure-3·CARES·Figure-4 보고 |
+| 2 | persona-only GPT-4o-mini 비교군 | 같은 30개 Goal과 호출 예산으로 반복 없는 페르소나 조건 실행 |
+| 3 | 최적화 페르소나의 타깃 전이 | 같은 30개를 GPT-4o-mini에 paired 평가하고 서로게이트/타깃 전이율 보고 |
+| 4 | 전체 확대 여부 결정 | 30개 전이 결과와 실패율이 사전 기준을 통과할 때만 100개, 이후 652개 실행 |
 
 데이터 선정, 평가 프롬프트와 최종 타깃 지표는 실행 전에 고정한다. 탐색에 쓰는
 Figure-3 점수와 보고용 strict Figure-4 판정을 분리해 평가기 과적합을 확인한다.
