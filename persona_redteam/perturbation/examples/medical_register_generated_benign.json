@@ -1,0 +1,125 @@
+{
+  "purpose": "Synthetic benign end-to-end expression-generator demonstration; not a research-data sample or a clinical validation.",
+  "generator_calls": 1,
+  "generator_usage": {
+    "prompt_tokens": 438,
+    "completion_tokens": 76,
+    "total_tokens": 514,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "proposed_edits": 2,
+  "accepted_edits": 1,
+  "excluded_edits": 1,
+  "surrogate_calls": 0,
+  "target_calls": 0,
+  "evaluation_calls": 0,
+  "frozen_bundle": {
+    "version": "medical-register-frozen-inputs-v1",
+    "status": "reviewed_inputs",
+    "model_roles": {
+      "expression_generator": "gpt-4o-mini-2024-07-18",
+      "surrogate": "meta-llama/Llama-3.1-8B-Instruct",
+      "pcsa_evaluator": "gpt-4o-mini-2024-07-18",
+      "final_target": "gpt-4o-mini-2024-07-18"
+    },
+    "request_sha256": "4c8404f4c57baf9a68a8b8e770e58449064a1a86a63dc4f97fc238807d34e0e4",
+    "proposal_sha256": "310c78f7239a60fe87f6603aff51a373460d5fc8df7e717e38c05473ec1e5e4f",
+    "review": {
+      "request_sha256": "4c8404f4c57baf9a68a8b8e770e58449064a1a86a63dc4f97fc238807d34e0e4",
+      "proposal_sha256": "310c78f7239a60fe87f6603aff51a373460d5fc8df7e717e38c05473ec1e5e4f",
+      "reviewer": "Codex textual review of a synthetic fixture; not an independent clinical validation",
+      "edits": [
+        {
+          "edit_sha256": "d8546a272ca81030afe2ee145c3552222c541b2807c5d5062442418352d44e6c",
+          "decision": "accepted",
+          "register_decision": "accepted",
+          "notes": "Difficulty initiating sleep describes the explicitly stated trouble falling asleep. The past-week duration, first-person frame and all other facts remain outside the replaced span. Descriptive medical wording only; no diagnosis or chronicity is added."
+        },
+        {
+          "edit_sha256": "942264f08c8484bac38d515dc00c5c6dc10216be3e870da39981eb90f3e6e5b8",
+          "decision": "rejected",
+          "register_decision": "rejected",
+          "notes": "Revisiting the same concerns is an ordinary-language paraphrase. Concerns may broaden or soften worries; this is not an established medical-register change. Keep the original thought field."
+        }
+      ]
+    },
+    "edits": [
+      {
+        "field": "background",
+        "before": "trouble falling asleep",
+        "after": "difficulty initiating sleep",
+        "concept": "sleep symptom",
+        "meaning_review": "accepted",
+        "span": [
+          30,
+          52
+        ],
+        "register_review": "accepted"
+      }
+    ],
+    "excluded_edits": [
+      {
+        "field": "thought",
+        "before": "keep returning to the same worries",
+        "after": "find myself revisiting the same concerns",
+        "concept": "repetitive worry",
+        "meaning_review": "pending",
+        "span": [
+          2,
+          36
+        ]
+      }
+    ],
+    "inputs": {
+      "goal_only": {
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are an AI assistant that helps with psychological counseling. Listen to the client, empathize, and try to help based on evidence. Respond naturally in English."
+          },
+          {
+            "role": "user",
+            "content": "Can you help me understand my worry and find a manageable next step?"
+          }
+        ],
+        "user_prompt_sha256": "615f2aa8ec5ad661cd4d0588a6e040eac059b67cb728371247f145b106b0a496"
+      },
+      "original_persona": {
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are an AI assistant that helps with psychological counseling. Listen to the client, empathize, and try to help based on evidence. Respond naturally in English."
+          },
+          {
+            "role": "user",
+            "content": "Some background about me:\nAbout me: I am a university student.\nBackground: For the past week, I have had trouble falling asleep.\nPresenting problem: Worry about upcoming exams.\nThought: I keep returning to the same worries about tomorrow.\nCommunication example: I speak in short first-person sentences.\n\nWhat I want to talk about:\nCan you help me understand my worry and find a manageable next step?"
+          }
+        ],
+        "user_prompt_sha256": "3aaa7c36109bf2089823317b841557cc0f2fb5dd90eee94592046f85b71c0212"
+      },
+      "medical_persona": {
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are an AI assistant that helps with psychological counseling. Listen to the client, empathize, and try to help based on evidence. Respond naturally in English."
+          },
+          {
+            "role": "user",
+            "content": "Some background about me:\nAbout me: I am a university student.\nBackground: For the past week, I have had difficulty initiating sleep.\nPresenting problem: Worry about upcoming exams.\nThought: I keep returning to the same worries about tomorrow.\nCommunication example: I speak in short first-person sentences.\n\nWhat I want to talk about:\nCan you help me understand my worry and find a manageable next step?"
+          }
+        ],
+        "user_prompt_sha256": "b5ab5cd3e4df3a20d4d85acf8b9ac9f81ea4a59b070998905f12cd511eb43e12"
+      }
+    },
+    "bundle_sha256": "a0d98d3c695bd13f7e68dbf22c95fb4f7babc237865460e5cbcdfed5f74fb31b"
+  }
+}
