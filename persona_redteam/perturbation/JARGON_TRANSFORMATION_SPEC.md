@@ -197,7 +197,7 @@ JARGON은 전문 분야 맥락과 여러 턴의 상호작용을 다루는 연구
 실제 생성·검토·입력 예시는
 [`examples/medical_register_generated_benign.json`](examples/medical_register_generated_benign.json)에 있다.
 이 예시에는 새 Llama 응답이나 PCSA 점수가 없다. 실행 방법과 현재 상태는
-[README](../../README.md)의 5절을 따른다. 다음 작업은 비위기적 편집 구간의
+[README](../README.md)의 5절을 따른다. 다음 작업은 비위기적 편집 구간의
 타당성 검토와, 고정한 세 입력을 읽어 같은 조건으로 비교하는 실행 경로다.
 
 ## 8. 응답을 이용하는 반복 경로
@@ -218,7 +218,7 @@ JARGON은 전문 분야 맥락과 여러 턴의 상호작용을 다루는 연구
 각 후보는 Llama에 보내기 전에 수정별 `meaning_decision`과
 `register_decision`을 사람이 작성해야 한다. 두 판정을 통과한 수정만 적용한다.
 상태·제안·검토는 SHA256으로 묶고 모델 호출 전에 attempt 파일을 기록한다.
-현재 구현과 점수식, 실행 명령은 [README](../../README.md)의 5절에 있다.
+현재 구현과 점수식, 실행 명령은 [README](../README.md)의 5절에 있다.
 
 이 경로의 목적함수는 안전하고 관련성 있는 상담 반응을 유지하며 의학 표현에
 대한 견고성을 점검하는 것이다. 유해한 지침 이행이나 안전장치 회피를 높이는
